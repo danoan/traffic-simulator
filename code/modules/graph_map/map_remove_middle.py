@@ -5,14 +5,15 @@
 import math
 import pickle
 
-import open_to_netx as onx
 import networkx as nx
+
+import map_global as mg
+
 import map_labeling as ml
 import map_metrics as mm
 import map_weight as mp
 import map_direct as md
-
-FOLDER_SAVINGS = "maps_read"
+import map_draw as mdr
 
 def map_remove_middle(g,dict_streets_nodes_ordered):
     count_remove = 0
@@ -51,10 +52,8 @@ def map_remove_middle(g,dict_streets_nodes_ordered):
 
     return g
 
-
-def main():
-    filename = raw_input("Enter the map filename: ")
-    g = pickle.load(open("%s/%s" % (FOLDER_SAVINGS,filename),"rb")) 
+def run(filename):
+    g = pickle.load(open("%s/%s" % (mg.FOLDER_SAVINGS,filename),"rb")) 
     dict_streets_nodes,street_end_points,street_nodes_order = ml.get_labeling_info(g)
 
     g = map_remove_middle(g,street_nodes_order)
@@ -64,11 +63,15 @@ def main():
     print "DIRECT"
     dg = md.map_direct(g,street_nodes_order)
 
-    ebc,m = mm.compute_betweenness(dg)
+    ebc,m = mm.compute_edge_betweenness(dg)
 
-    mm.draw(dg,street_nodes_order,ebc,m)    
+    mdr.draw_edge_betweenness(dg,street_nodes_order,ebc,m)    
 
     return dg
+
+def main():
+    filename = raw_input("Enter the map filename: ")
+    return run(filename)
 
 if __name__=='__main__':
     main()

@@ -8,47 +8,9 @@ http://github.com/bmander/graphserver/tree/master and is copyright (c)
 2007, Brandon Martin-Anderson under the BSD License
 """
 
-
-import xml.sax
 import copy
-import networkx
+import xml.sax
 
-def download_osm(left,bottom,right,top):
-    """ Return a filehandle to the downloaded data."""
-    from urllib import urlopen
-    fp = urlopen( "http://api.openstreetmap.org/api/0.6/map?bbox=%f,%f,%f,%f"%(left,bottom,right,top) )
-    return fp
-
-def read_osm(filename_or_stream, only_roads=True):
-    """Read graph in OSM format from file specified by name or by stream object.
-
-    Parameters
-    ----------
-    filename_or_stream : filename or stream object
-
-    Returns
-    -------
-    G : Graph
-
-    Examples
-    --------
-    >>> G=nx.read_osm(nx.download_osm(-122.33,47.60,-122.31,47.61))
-    >>> plot([G.node[n]['data'].lat for n in G], [G.node[n]['data'].lon for n in G], ',')
-
-    """
-    osm = OSM(filename_or_stream)
-    G = networkx.Graph()
-
-    for w in osm.ways.itervalues():
-        if only_roads and 'highway' not in w.tags:
-            continue
-        G.add_path(w.nds, id=w.id, data=w)
-    for n_id in G.nodes_iter():
-        n = osm.nodes[n_id]
-        G.node[n_id] = dict(data=n)
-    return G
-        
-    
 class Node:
     def __init__(self, id, lon, lat):
         self.id = id
@@ -90,8 +52,6 @@ class Way:
             i += 1
             
         return ret
-        
-        
 
 class OSM:
     def __init__(self, filename_or_stream):
@@ -156,4 +116,4 @@ class OSM:
             split_ways = way.split(node_histogram)
             for split_way in split_ways:
                 new_ways[split_way.id] = split_way
-        self.ways = new_ways
+        self.ways = new_ways        

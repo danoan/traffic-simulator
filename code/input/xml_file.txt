@@ -1,0 +1,10 @@
+0,0,0,0,rio de janeiro menor
+0,0,0,0,rio de janeiro maior
+0,0,0,0,sao paulo menor
+0,0,0,0,sao paulo maior
+0,0,0,0,cidade mexico menor
+0,0,0,0,cidade mexico maior
+0,0,0,0,manhattan menor
+0,0,0,0,manhattan maior
+0,0,0,0,london menor
+0,0,0,0,london maior

@@ -1,17 +1,11 @@
-#!/usr/bin/python
+#coding: utf-8
 
-#coding:utf-8
-
-import pickle
 import networkx as nx
-import map_labeling as ml
-import map_weight as mp
 import matplotlib.pyplot as plt
 
-FOLDER_SAVINGS = "maps_read"
-FOLDER_IMG = "images"
+import map_global as mg
 
-def draw(g,street_nodes_order,ebc,max_ebc,save_name="saida.png"):
+def draw_edge_betweenness(g,street_nodes_order,ebc,max_ebc,save_img=False,save_name="saida.png"):
     pos = {node_id:(g.node[node_id]['data'].lat,g.node[node_id]['data'].lon) for node_id in g.nodes()}
 
     edge_colors = []
@@ -22,11 +16,10 @@ def draw(g,street_nodes_order,ebc,max_ebc,save_name="saida.png"):
         if ebc[e]>=(max_ebc*0.4):
             if g.edge[e[0]][e[1]]['data'].tags.has_key('name'):
                 street_to_label.update({g.edge[e[0]][e[1]]['data'].tags['name']:True})
-            else:
-                print "NONAME"        
+            #else NONAME
 
     edge_labels = {e:"" for e in g.edges()}
-    for s in street_to_label.keys():#street_nodes_order.keys():
+    for s in street_to_label.keys():
         nodes = street_nodes_order[s]
         m = ( len(nodes)/2 ) -1
 
@@ -37,29 +30,24 @@ def draw(g,street_nodes_order,ebc,max_ebc,save_name="saida.png"):
 
     nx.draw_networkx(g,pos=pos,font_size=8,with_labels=False,node_size=0,arrows=False,edge_color=edge_colors,edge_cmap=plt.cm.RdYlGn, edge_vmin=-1.0, edge_vmax=0.0)
     nx.draw_networkx_edge_labels(g,font_size=8,alpha=0.5,label_pos=0.5,pos=pos,edge_labels=edge_labels)
-    # plt.savefig("%s/%s" % (FOLDER_IMG,save_name),dpi=1200)
-    plt.show()
 
-def compute_betweenness(g):
-    mp.weight_graph(g)
-    ebc = nx.edge_betweenness_centrality(g,'weight')
+    if save_img:
+        plt.savefig("%s/%s" % (mg.EDGE_BETWEENNESS_IMG_FOLDER,save_name),dpi=1200)
+    else:
+        plt.show()
 
-    m = 0
-    for v in ebc.values():
-        if v>m:
-            m = v
+def draw_streets_as_vertices(g,ebc,max_ebc,save_img=False,save_name="saida.png"):
+    node_colors = []
+    nodes_to_label = {n:"" for n in g.nodes()}
+    for n in g.nodes():
+        node_colors.append( -ebc[n]/(1.0*max_ebc) )
+        
+        if ebc[n]>=(max_ebc*0.4):
+            print n
+            nodes_to_label.update({n:n})
 
-    return ebc,m    
-
-def main():
-    map_filename = raw_input("Enter with the map filename: ")
-    g = pickle.load(open("%s/%s" % (FOLDER_SAVINGS,map_filename),"rb"))
-
-    dict_streets_nodes,street_end_points,street_nodes_order = ml.get_labeling_info(g)
-    ebc,m = compute_betweenness(g)
-    
-
-    draw(g,street_nodes_order,ebc,m)
-
-if __name__=='__main__':
-    main()
+    nx.draw_networkx(g,pos=nx.fruchterman_reingold_layout(g),font_size=12,with_labels=True,labels=nodes_to_label,linewidths=None,node_size=30,arrows=False,node_color=node_colors,cmap=plt.cm.RdYlGn, vmin=-1.0, vmax=0.0)
+    if save_img:
+        plt.savefig("%s/%s" % (mg.NODE_BETWEENNESS_IMG_FOLDER,save_name),dpi=1200)
+    else:
+        plt.show()

@@ -6,7 +6,7 @@ import math
 import pickle
 import networkx as nx
 
-FOLDER_SAVINGS = "maps_read"
+import map_global as mg
 EARTH_RADIUS = 6367
 
 def haversine(lat1,lon1,lat2,lon2):
@@ -29,10 +29,14 @@ def weight_graph(g):
 
 		g[u][v]['weight'] = haversine(ulat,ulon,vlat,vlon)
 
+def run(filename):
+	g = pickle.load(open("%s/%s" % (mg.FOLDER_SAVINGS,filename),"rb"))	
+	weight_graph(g)
+	return g
+
 def main():
 	filename = raw_input("Enter the map filename: ")
-	g = pickle.load(open("%s/%s" % (FOLDER_SAVINGS,filename),"rb"))	
-	weight_graph(g)
+	return run(filename)
 
 if __name__=='__main__':
 	main()

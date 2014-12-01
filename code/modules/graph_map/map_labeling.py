@@ -57,6 +57,7 @@ def visit_in_order(streets_end_point,g):
     dict_streets_nodes_ordered = {}   #Dictionary whose key is the street name and the value a list of nodes                             
                                       #ordered by the sequence of the nodes along the street    
 
+    dict_endpoints_streets = {}
     for s in streets_end_point.keys():
         already_visited = []
         dict_streets_nodes_ordered[s] = []
@@ -76,7 +77,11 @@ def visit_in_order(streets_end_point,g):
                         already_visited.append(neigh_id)
                         break   #That`s only one per street--xx--Its not true. Some streets are circular
 
-    return dict_streets_nodes_ordered
+        #TODO: Nao Esta funcionando
+        dict_endpoints_streets.update( { (dict_streets_nodes_ordered[s][0],dict_streets_nodes_ordered[s][-1]):s } )
+        dict_endpoints_streets.update( { (dict_streets_nodes_ordered[s][-1],dict_streets_nodes_ordered[s][0]):s } )
+
+    return dict_streets_nodes_ordered,dict_endpoints_streets
 
 def get_labeling_info(g):
     dict_streets_nodes = {} #Dictionary whose key is the street name and the value is a dict of nodes with node key as id
@@ -93,11 +98,11 @@ def get_labeling_info(g):
         print "VERTICES REMOVED FROM NONAME EDGES: ",count_remove
 
     street_end_points = discover_street_endpoints(dict_streets_nodes,g)
-    street_nodes_order = visit_in_order(street_end_points,g)
+    street_nodes_order,dict_endpoints_streets = visit_in_order(street_end_points,g)
 
     # draw(g,street_nodes_order)
 
-    return dict_streets_nodes,street_end_points,street_nodes_order
+    return dict_streets_nodes,street_end_points,dict_endpoints_streets,street_nodes_order
 
 def run(filename):
     g = pickle.load(open("%s/%s" % (mg.FOLDER_SAVINGS,filename),"rb"))

@@ -32,7 +32,9 @@ def map_direct(g,dict_streets_nodes_ordered):
 
 	for st in dict_streets_nodes_ordered.keys():		
 		nodes = dict_streets_nodes_ordered[st]
-
+		if len(nodes)==1:
+			continue
+			
 		if not g[nodes[0]][nodes[1]]['data'].tags.has_key('oneway'):
 			continue
 

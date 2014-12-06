@@ -42,7 +42,11 @@ def map_streets_are_vertices(g,dict_streets_nodes_ordered):
     for s in dict_streets_intersections.keys():        
         ng.add_node(s)
 
-        first_vertice = dict_streets_nodes_ordered[s][1]
+        if len(dict_streets_nodes_ordered[s])>1:
+            first_vertice = dict_streets_nodes_ordered[s][1]
+        else:
+            first_vertice = dict_streets_nodes_ordered[s][0]
+
         ng.node[s]['data'] = g.node[first_vertice]['data']
         ng.node[s]['weight'] = 1
 
@@ -57,20 +61,22 @@ def map_streets_are_vertices(g,dict_streets_nodes_ordered):
 
     return ng
 
-def run(filename):
-    g = pickle.load(open("%s/%s" % (mg.FOLDER_SAVINGS,filename),"rb")) 
-    dict_streets_nodes,street_end_points,street_nodes_order = ml.get_labeling_info(g)
+def compute(mapname,filename):
+    g = pickle.load(open(filename,"rb")) 
+    dict_streets_nodes,street_end_points,dict_endpoints_streets,street_nodes_order = ml.get_labeling_info(g)
 
     g = map_streets_are_vertices(g,street_nodes_order)
     ebc,m = mm.compute_vertex_betweenness(g)
 
+    return ebc,m    
+
+def run(mapname,filename):
     mdr.draw_streets_as_vertices(g,ebc,m)    
 
-    return g    
-
 def main():
-    filename = raw_input("Enter the map filename: ")
-    return run(filename)
+    mapname = raw_input("Enter the map mapname: ")
+    filename = "%s/%s" % (mg.FOLDER_SAVINGS,mapname)
+    return run(mapname,filename)
 
 if __name__=='__main__':
     main()

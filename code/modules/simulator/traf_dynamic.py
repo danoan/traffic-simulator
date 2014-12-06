@@ -23,6 +23,9 @@ class TrafficDynamic:
         self.total_time = total_time
         self.vmax = vmax
 
+        self.gap_zero_counter = 0
+        self.hops_counter = 0
+
         self.node_edge_map = {}
         self.edge_total_time = {}
 
@@ -36,18 +39,18 @@ class TrafficDynamic:
             v = path[i+1]
             umap = self.gmesh.vi_map[u]
             vmap = self.gmesh.vi_map[v]
-            if dict_edges.has_key( (u,v) ):
 
-                for node in dict_edges[(u,v)][:-1]:
-                    mesh_path.append(node)
-                    if node!=path[0]:
-                        self.node_edge_map.update( {node:(umap,vmap)} )
+            for node in dict_edges[(u,v)][:-1]:
+                mesh_path.append(node)
+                if node!=path[i]:
+                    self.node_edge_map.update( {node:(umap,vmap)} )
 
         mesh_path.append( self.gmesh.vi_map[ path[-1] ] )       
         return mesh_path
 
     def update_position(self,e):
         self.traffic_map[ e.path[e.pos] ] = False
+        self.hops_counter+=int(e.vel)
         e.pos += int(e.vel)
         self.traffic_map[ e.path[e.pos] ] = True
 
@@ -61,6 +64,8 @@ class TrafficDynamic:
     def process_event(self,e):
         if e.status==te.TrafficEvent.NOT_STARTED:
             e.vel = 1.0
+            e.avg_speed = e.vel
+            e.last_5_avg_speed = e.vel
             e.status = te.TrafficEvent.RUNNING
 
             e.path = self.build_mesh_path(e.path,self.gmesh.dict_edges)
@@ -69,7 +74,7 @@ class TrafficDynamic:
             self.log( "STARTING EVENT %d\n %s" % (e.id,e) )         
 
         elif e.status==te.TrafficEvent.RUNNING:
-            current_node = e.path[e.pos]
+            current_node = e.path[e.pos]            
             if self.node_edge_map.has_key(current_node): #If not, it is a director node, and I can`t say which edge it belongs to
                 u,v = self.node_edge_map[current_node]
                 if self.edge_total_time.has_key( (u,v) ):
@@ -90,6 +95,15 @@ class TrafficDynamic:
                             break
                     gaps_ahead += 1
 
+                #gap_zero counter makes the car walk after struglle for a while
+                if gaps_ahead==0:
+                    self.gap_zero_counter +=1
+                else:
+                    self.gap_zero_counter = 0
+
+                if self.gap_zero_counter>5:
+                    gaps_ahead = 1
+
                 if e.vel<gaps_ahead:
                     self.update_position(e)
                     if e.vel<self.vmax:
@@ -106,8 +120,11 @@ class TrafficDynamic:
                         self.log("EVENT %d SLOW DOWN: Gaps: %d Velocity: %d Position: %d" % (e.id,gaps_ahead,e.vel,e.pos))
 
                 e.t_end+=1
-        elif e.status==te.TrafficEvent.FINISHED:
-            e.status = None
+                trip_time = e.t_end-e.t_start
+                if trip_time%3==0:
+                    e.last_5_avg_speed = self.hops_counter/3.0
+                    self.hops_counter=0                
+                e.avg_speed = e.pos/(trip_time)
 
     def run(self,save=True,mapname="mapa_semnome"):
         foldername = "%s/%s_SEG%s_CARROS%s_VMAX%s" % (OUTPUT_IMAGES_FOLDER,mapname,self.total_time,len(self.events),self.vmax)
@@ -153,7 +170,7 @@ class TrafficDynamic:
         for e in self.events:
             travel_time = (e.t_end-e.t_start)
 
-            if e.status == te.TrafficEvent.FINISHED:
+            if e.status == te.TrafficEvent.FINISHED and travel_time>0:
                 avg_sp += len(e.path)/( 1.0*travel_time )
             else:
                 total_events-=1
@@ -162,6 +179,10 @@ class TrafficDynamic:
             data["Average Speed"] = avg_sp/total_events
 
         for mesh_edge in self.edge_total_time.keys():
-            data["Street Average Speed"].update( {self.gmesh.dict_mesh_edges[mesh_edge]:self.edge_total_time[mesh_edge]} )
+            original_pair = self.gmesh.dict_mesh_edges[mesh_edge]
+            length = 1.0*len(self.gmesh.dict_edges[original_pair])
+            edge_avg_speed = length/self.edge_total_time[mesh_edge]
+
+            data["Street Average Speed"].update( {original_pair:edge_avg_speed} )
 
         return data

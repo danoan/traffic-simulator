@@ -3,8 +3,9 @@
 import random
 
 import networkx as nx
+import graph_tool.topology as gt_top
 
-def mockEvents(g,t,n,nmid):
+def mockEventsNX(g,t,n,nmid):
     events = []
     for i in xrange(0,n):
         while True:
@@ -19,6 +20,25 @@ def mockEvents(g,t,n,nmid):
         print i
 
     return events
+
+def mockEvents(nx_map,gt_map,nx_index,t,n,w,nmid):
+    #WAY FASTER
+    events = []
+    for i in xrange(0,n):
+        while True:
+            b = gt_map.vertex( random.randint(0,gt_map.num_vertices()-1) )
+            e = gt_map.vertex( random.randint(0,gt_map.num_vertices()-1) )
+
+            b1 = nx_index[b]
+            e1 = nx_index[e]
+            if nx.has_path(nx_map,b1,e1) and b1!=e1:
+                break
+
+        start = random.randint(0,t)
+        events.append( TrafficEvent(b,e, map(lambda x: nx_index[x], gt_top.shortest_path(gt_map,b,e,weights=w)[0] ), start) )
+        print i
+
+    return events    
 
 class TrafficEvent:
     NOT_STARTED = 0
@@ -39,6 +59,9 @@ class TrafficEvent:
         self.status = TrafficEvent.NOT_STARTED
         self.t_end = t_start
         self.id = TrafficEvent.event_id
+
+        self.avg_speed = 0
+        self.last_5_avg_speed = 0
 
         TrafficEvent.event_id+=1
 

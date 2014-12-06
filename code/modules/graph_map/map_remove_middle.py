@@ -20,6 +20,9 @@ def map_remove_middle(g,dict_streets_nodes_ordered):
     for s in dict_streets_nodes_ordered.keys():
         nodes = dict_streets_nodes_ordered[s]
 
+        if len(nodes)==1:
+            continue
+
         to_keep = []
         to_keep.append( 0 )
         for i in xrange(1,len(nodes)-1):

@@ -15,12 +15,12 @@ import map_direct as md
 import map_metrics as mm
 import map_draw as mdr
 
-def run(filename):
-	print "DOING FOR %s: " % (filename,)
-	g = pickle.load(open("%s/%s" % (mg.FOLDER_SAVINGS,filename),"rb"))	
+def compute(mapname,filename):
+	print "DOING FOR %s: " % (mapname,)
+	g = pickle.load(open("%s" % (filename,),"rb"))	
 
 	print "LABELING"
-	dict_streets_nodes,street_end_points,street_nodes_order = ml.get_labeling_info(g)
+	dict_streets_nodes,street_end_points,dict_endpoints_streets,street_nodes_order = ml.get_labeling_info(g)
 	print "WEIGHT"
 	mp.weight_graph(g)
 	print "DIRECT"
@@ -29,7 +29,11 @@ def run(filename):
 	print "BETWEENNESS"
 	ebc,m = mm.compute_edge_betweenness(dg)
 
-	mdr.draw_edge_betweenness(dg,street_nodes_order,ebc,m,save_name="%s.png" % (filename.split(".")[0],))
+	return ebc,m
+
+def run(mapname,filename):
+	ebc,m = compute(mapname,filename)
+	mdr.draw_edge_betweenness(dg,street_nodes_order,ebc,m,save_name="%s.png" % (mapname,))
 
 def main():
 	'''
@@ -39,8 +43,8 @@ def main():
 
 		Maps can be retrieved from two different folders: few_vertices and full_vertices
 	'''
-	filename = raw_input("Enter the map filename: ")
-	run(filename)
+	mapname = raw_input("Enter the map mapname: ")
+	run( mapname, "%s/%s" % (mg.FOLDER_SAVINGS,mapname) )
 
 if __name__=='__main__':
 	main()

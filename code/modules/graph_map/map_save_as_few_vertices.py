@@ -26,7 +26,7 @@ def run(filenames,output_folder="few_vertices"):
 			g = pickle.load(inputfile)
 
 			print "LABELING"
-			dict_streets_nodes,street_end_points,street_nodes_order = ml.get_labeling_info(g)
+			dict_streets_nodes,street_end_points,dict_end_points,street_nodes_order = ml.get_labeling_info(g)
 
 	    	g = mr.map_remove_middle(g,street_nodes_order)		
 

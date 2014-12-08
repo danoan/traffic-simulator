@@ -126,16 +126,6 @@ def visit_in_order(streets_end_point,dict_streets_nodes,g):
             dict_endpoints_streets.update( { (n0,n1):s } )
             dict_endpoints_streets.update( { (n1,n0):s } )
 
-    s=0
-    for i in xrange(0,10):
-        key = street_version("Rua Dias da Cruz",i)        
-        if not dict_streets_nodes_ordered.has_key(key):
-            break
-        else:
-            s+= len( dict_streets_nodes_ordered[key] )
-        print key
-    print "DIAS DA CRUZ ", s
-
     return dict_streets_nodes_ordered,dict_endpoints_streets
 
 def get_labeling_info(g):

@@ -64,7 +64,10 @@ def convert(nx_map):
     w_prop = gt_map.new_edge_property("double")
     for e in nx_map.edges():
         new_e = gt_map.add_edge( gt_index[ e[0] ], gt_index[ e[1] ] )
-        w_prop[new_e] = nx_map[e[0]][e[1]]['weight']
+        if nx_map[e[0]][e[1]].has_key('weight'):
+            w_prop[new_e] = nx_map[e[0]][e[1]]['weight']
+        else:
+            w_prop[new_e] = 1.0
 
     return gt_map,nx_index,gt_index,w_prop
 

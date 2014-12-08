@@ -61,16 +61,16 @@ def generate_mesh_from_map(filename,min_gap=0.00025):
 
     print "DIRECT"
     dg = md.map_direct(g,street_nodes_order)    
-    mw.weight_graph(dg)
+    # mw.weight_graph(dg)
 
     return tm.GraphMesh(dg,min_gap), dict_endpoints_streets  
 
-def simulacao(map_name,gm,total_time,densidade,endpoints_streets,gt_map,nx_index,w_prop):
+def simulacao(map_name,gm,total_time,densidade,endpoints_streets,gt_map,nx_index,w_prop,save=False):
     total_events = int( math.floor( densidade*len(gm.g.nodes()) ) )
     events = te.mockEvents(gm.g,gt_map,nx_index,total_time*0.4,total_events,w_prop,gm.nmid)
 
     tr_dyn = td.TrafficDynamic(gm,events,total_time=total_time,total_events=total_events)
-    data = tr_dyn.run(save=False,mapname=map_name)    
+    data = tr_dyn.run(save=save,mapname=map_name)    
 
     #TODO: Nao Esta funcionando
     streets_avg_speed = {}    
@@ -153,29 +153,49 @@ def run(map_name):
     for d in [0.5+0.25*i for i in xrange(0,5)]:
         tempo = 1000
 
-        data_sum = simulacao(map_name,gm,tempo,d,endpoints_streets,gt_map,nx_index,w_prop)
+        data_sum = { "Simulation Time": 0,
+                     "Total Events": 0,
+                     "Average Speed": 0,
+                     "Street Average Speed":{},
+                    }                    
+        st_count = {}
+
         r=25
-        for i in xrange(1,r):
+        for i in xrange(0,r):
             data = simulacao(map_name,gm,tempo,d,endpoints_streets,gt_map,nx_index,w_prop)
             data_sum["Average Speed"]+=data["Average Speed"]
+            data_sum["Simulation Time"]+=data["Simulation Time"]
+            data_sum["Total Events"]=data["Total Events"]
             for k in data["Street Average Speed"].keys():
                 if data_sum.has_key(k):
                     data_sum["Street Average Speed"][k] += data["Street Average Speed"][k]
+                    st_count[k] += 1
                 else:
                     data_sum["Street Average Speed"][k] = data["Street Average Speed"][k]
-        
+                    st_count[k] = 1
+
         data_sum["Average Speed"]/=1.0*r
         for k in data_sum["Street Average Speed"].keys():
-            data_sum["Street Average Speed"][k]/=1.0*r
+            data_sum["Street Average Speed"][k]/=1.0*st_count[k]
 
         print "SAVING"
         save_results( map_name,map_filename,d,tempo,endpoints_streets,data_sum)
 
 
+def single_simulation(map_name):
+    tempo = 2000
+
+    map_filename = "%s/%s.nx" % (FEW_VERTICES_FOLDER,map_name)    
+    gm,endpoints_streets = generate_mesh_from_map(map_filename)   
+    gt_map,nx_index,gt_index,w_prop = conv_gt.convert(gm.g)
+    d = 1.5
+
+    simulacao(map_name,gm,tempo,d,endpoints_streets,gt_map,nx_index,w_prop,save=True)    
 
 def main():
     map_name = raw_input("Enter map name: ")
-    run(map_name)
+    single_simulation(map_name)
+    # run(map_name)
 
     # convert_to_few_vertices()
     # read_maps()

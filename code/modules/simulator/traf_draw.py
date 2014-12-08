@@ -34,7 +34,7 @@ def draw(g,vi_map=None,traffic_map=None,events=[],with_labels=False,save=False,f
     ax.axis('off')
     nx.draw_networkx(g,pos=pos,arrows=False,node_size=18,with_labels=with_labels,linewidths=0.2,node_color=node_color,vmin=0,vmax=10)
     if save:
-        plt.savefig(filename,dpi=90,bbox_inches='tight')       
+        plt.savefig(filename,dpi=70,bbox_inches='tight')       
     else:
         plt.show()
     plt.close(fig)  

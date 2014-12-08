@@ -58,9 +58,13 @@ class GraphMesh:
             d = [ lon1 - lon0, lat1 - lat0 ]
             length = math.sqrt( d[0]**2 + d[1]**2 )
 
-            d[0] = d[0]/length*min_gap
-            d[1] = d[1]/length*min_gap
-            
+            if length!=0:
+                d[0] = d[0]/length*min_gap
+                d[1] = d[1]/length*min_gap
+            else:
+                d[0] = 0
+                d[1] = 0
+
             if len(dict_edges[ (u,v) ])>2:
                 n = int( math.floor(length/min_gap) )
 
